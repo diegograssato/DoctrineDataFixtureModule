@@ -1,2 +1,6 @@
+
 <?php
-return array();
+
+return [
+    'service_manager' => include __DIR__ . '/services.config.php',
+];

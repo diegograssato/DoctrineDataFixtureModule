@@ -1,4 +1,5 @@
 <?php
+
 namespace DoctrineDataFixtureTest\TestAsset\Fixtures\HasSL;
 
 use Doctrine\Common\Persistence\ObjectManager;
@@ -8,16 +9,19 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 class FixtureA implements FixtureInterface, ServiceLocatorAwareInterface
 {
+
     /**
      * @var ServiceLocatorInterface
      */
     protected $serviceLocator = null;
 
-
+    /**
+     * {@inheritDoc}
+     */
     public function load(ObjectManager $manager)
     {
     }
-    
+
     /**
      * Set service locator
      *
@@ -27,10 +31,9 @@ class FixtureA implements FixtureInterface, ServiceLocatorAwareInterface
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
     {
         $this->serviceLocator = $serviceLocator;
-    
         return $this;
     }
-    
+
     /**
      * Get service locator
      *
