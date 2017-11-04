@@ -1,11 +1,8 @@
-# DoctrineDataFixture Module for Zend Framework 2
-
-[![Build Status](https://travis-ci.org/Hounddog/DoctrineDataFixtureModule.png)](https://travis-ci.org/Hounddog/DoctrineDataFixtureModule)
-[![Coverage Status](https://coveralls.io/repos/Hounddog/DoctrineDataFixtureModule/badge.png?branch=master)](https://coveralls.io/r/Hounddog/DoctrineDataFixtureModule)
-
+# DoctrineDataFixture Module for Zend Framework 3
+ 
 ## Introduction
 
-The DoctrineDataFixtureModule module intends to integrate Doctrine 2 data-fixture with Zend Framework 2 quickly
+The DoctrineDataFixtureModule module intends to integrate Doctrine 2 data-fixture with Zend Framework 3 quickly
 and easily. The following features are intended to work out of the box:
 
   - Doctrine ORM support
@@ -23,33 +20,69 @@ Installation of this module uses composer. For composer documentation, please re
 [getcomposer.org](http://getcomposer.org/).
 
 ```sh
-$ php composer.phar require hounddog/doctrine-data-fixture-module:0.0.*
+$ php composer.phar require --dev "diegograssato/doctrine-odm-datafixture": "2.0"
 ```
 
-Then open `config/application.config.php` and add `DoctrineModule`, `DoctrineORMModule` and 
-`DoctrineDataFixtureModule` to your `modules`
+Then open `config/development.config.php` and `DoctrineDataFixtureModule` to your `modules`
 
 #### Registering Fixtures
 
 To register fixtures with Doctrine module add the fixtures in your configuration.
 
 ```php
-<?php
-return array(
-      'doctrine' => array(
-            'fixture' => array(
-                  'ModuleName_fixture' => __DIR__ . '/../src/ModuleName/Fixture',
-            )
-      )
-);
+
+ 'orm_fixtures' => [
+     __DIR__.'/../MyModule/src/MyModule/Fixtures',
+  ]
+  
 ```
 
-## Usage
 
-#### Command Line
-Access the Doctrine command line as following
+or group configurator
 
-##Import
-```sh
-./vendor/bin/doctrine-module data-fixture:import 
+```php
+'orm_fixtures' => [
+    'groups' => [
+        'default' => [
+            __DIR__.'/../MyModule/src/MyModule/Fixtures/default',
+        ],
+        'production' => [
+             __DIR__.'/../MyModule/src/MyModule/Fixtures/production',
+        ]
+    ]
+]
+```
+
+To rotate the fixture use the terminal command:
+
+```
+  vendor/bin/doctrine-odm-datafixture odm:fixtures:load
+```
+
+The odm:fixture:load command loads data fixtures from your bundles:
+
+```
+  vendor/bin/doctrine-module orm:fixtures:load
+```
+
+You can also optionally specify the path to fixtures with the **--fixtures** option:
+
+```
+  vendor/bin/doctrine-module orm:fixtures:load --fixture=/path/to/fixtures1 --fixture=/path/to/fixtures2
+```
+If you want to append the fixtures instead of flushing the database first you can use the **--append** option:
+
+```
+  vendor/bin/doctrine-module orm:fixtures:load --fixture=/path/to/fixtures1 --fixture=/path/to/fixtures2 --append
+```
+
+You can also optionally specify the group configuration:
+
+```
+  vendor/bin/doctrine-module orm:fixtures:load --group production
+``` 
+
+You can also optionally list the fixtures:
+```
+  vendor/bin/doctrine-module orm:fixtures:list --group production
 ```

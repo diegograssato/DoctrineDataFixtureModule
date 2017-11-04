@@ -42,7 +42,7 @@ use Doctrine\Common\DataFixtures\Loader;
  * @since   2.0
  * @author  Jonathan Wage <jonwage@gmail.com>
  */
-class ImportCommand extends Command
+class ListCommand extends Command
 {
     protected $paths;
 
@@ -66,23 +66,17 @@ class ImportCommand extends Command
     {
         parent::configure();
 
-        $this->setName('orm:fixtures:load')
-            ->setDescription('Import Data Fixtures')
+        $this->setName('orm:fixtures:list')
+            ->setDescription('List Data Fixtures')
             ->setHelp(
                 <<<EOT
-The <info>orm:fixtures:load</info> command loads data fixtures from your bundles:
-  <info>vendor/bin/doctrine-module orm:fixtures:load -n</info>
+The <info>orm:fixtures:list</info> command loads data fixtures from your bundles:
+  <info>vendor/bin/doctrine-module orm:fixtures:list</info>
 You can also optionally specify the path to fixtures with the <info>--fixture</info> option:
-  <info>vendor/bin/doctrine-module orm:fixtures:load --fixture=/path/to/fixtures1 --fixture=/path/to/fixtures2</info>
+  <info>vendor/bin/doctrine-module orm:fixtures:list --fixture=/path/to/fixtures1 --fixture=/path/to/fixtures2</info>
   or
-  <info>vendor/bin/doctrine-module orm:fixtures:load --fixture /path/to/fixtures1 --fixture /path/to/fixtures2</info>
-If you want to append the fixtures instead of flushing the database first you can use the <info>--append</info> option:
-  <info>vendor/bin/doctrine-module orm:fixtures:load --append</info>
-  If you want select to use group configuration
-  <info>vendor/bin/doctrine-module orm:fixtures:load --group production</info>
-  or
-  <info>vendor/bin/doctrine-module orm:fixtures:load --group production --append</info>
-
+  <info>vendor/bin/doctrine-module orm:fixtures:list --fixture /path/to/fixtures1 --fixture /path/to/fixtures2</info>
+ 
 EOT
             )
             ->addOption('fixture', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'The directory to load data fixtures from.')
@@ -93,7 +87,7 @@ EOT
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln(sprintf('<comment>%s</comment>', "Loading ORM fixtures."));
+        $output->writeln(sprintf('<comment>%s</comment>', "Listing ORM fixtures."));
         $output->writeln(sprintf('<comment>%s</comment>', "---------------------"));
         if ($input->isInteractive() && !$input->getOption('append')) {
             if (!$this->askConfirmation($input, $output, '<question>Careful, database will be purged. Do you want to continue y/N ?</question>', false)) {
@@ -103,18 +97,6 @@ EOT
         }
 
         $loader = new Loader();
-        $purger = new ORMPurger();
-
-        if ($input->getOption('purge-with-truncate')) {
-            $purger->setPurgeMode(self::PURGE_MODE_TRUNCATE);
-        }
-
-        $executor = new ORMExecutor($this->em, $purger);
-        $executor->setLogger(
-            function ($message) use ($output) {
-                $output->writeln(sprintf('  <comment>✔</comment> <info>%s</info>', $message));
-            }
-        );
 
         $dirOrFile = $input->getOption('fixture');
         if ($dirOrFile) {
@@ -140,7 +122,9 @@ EOT
                 sprintf('Could not find any fixtures to load in: %s', "\n\n- " . implode("\n- ", $this->paths))
             );
         }
-        $executor->execute($fixtures, $input->getOption('append'));
+        foreach ($fixtures as $fixture) {
+            $output->writeln(sprintf('  <comment>✔</comment> <info>%s</info>', get_class($fixture)));
+        }
         $output->writeln("");
     }
 

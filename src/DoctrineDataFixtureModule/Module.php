@@ -19,14 +19,12 @@
 
 namespace DoctrineDataFixtureModule;
 
-use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
-use Zend\ModuleManager\Feature\ServiceProviderInterface;
-use Zend\ModuleManager\Feature\ConfigProviderInterface;
-use Zend\EventManager\EventInterface;
-use Zend\ModuleManager\ModuleManager;
 use Doctrine\ORM\Tools\Console\ConsoleRunner;
 use DoctrineDataFixtureModule\Command\ImportCommand;
+use DoctrineDataFixtureModule\Command\ListCommand;
 use DoctrineDataFixtureModule\Service\FixtureFactory;
+use Zend\EventManager\EventInterface;
+use Zend\ModuleManager\ModuleManagerInterface;
 
 /**
  * Base module for Doctrine Data Fixture.
@@ -35,55 +33,10 @@ use DoctrineDataFixtureModule\Service\FixtureFactory;
  * @link    www.doctrine-project.org
  * @author  Martin Shwalbe <martin.shwalbe@gmail.com>
  */
-class Module implements
-    AutoloaderProviderInterface,
-    ServiceProviderInterface,
-    ConfigProviderInterface
+class Module
 {
-    /**
-     * {@inheritDoc}
-     */
-    public function getAutoloaderConfig()
-    {
-        return array(
-            'Zend\Loader\StandardAutoloader' => array(
-                'namespaces' => array(
-                    __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__
-                ),
-            ),
-        );
-    }
+    const VERSION = '2.0';
 
-    /**
-     * {@inheritDoc}
-     */
-    public function init(ModuleManager $e)
-    {
-        $events = $e->getEventManager()->getSharedManager();
-
-        // Attach to helper set event and load the entity manager helper.
-        $events->attach('doctrine', 'loadCli.post', function (EventInterface $e) {
-            /* @var $cli \Symfony\Component\Console\Application */
-            $cli = $e->getTarget();
-
-            /* @var $sm ServiceLocatorInterface */
-            $sm = $e->getParam('ServiceManager');
-            $em = $cli->getHelperSet()->get('em')->getEntityManager();
-            $paths = $sm->get('doctrine.configuration.fixtures');
-
-            $importCommand = new ImportCommand($sm);
-            $importCommand->setEntityManager($em);
-            $importCommand->setPath($paths);
-            ConsoleRunner::addCommands($cli);
-            $cli->addCommands(array(
-                $importCommand
-            ));
-        });
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public function getConfig()
     {
         return include __DIR__ . '/../../config/module.config.php';
@@ -92,12 +45,36 @@ class Module implements
     /**
      * {@inheritDoc}
      */
-    public function getServiceConfig()
+    public function init(ModuleManagerInterface $manager)
     {
-        return array(
-            'factories' => array(
-                'doctrine.configuration.fixtures' => new FixtureFactory('fixtures_default'),
-            ),
-        );
+        $events = $manager->getEventManager()->getSharedManager();
+        // Attach to helper set event and load the entity manager helper.
+        $events->attach('doctrine', 'loadCli.post', function (EventInterface $e) {
+            /* @var $cli \Symfony\Component\Console\Application */
+            $cli = $e->getTarget();
+
+            /* @var $sm ServiceLocatorInterface */
+            $sm = $e->getParam('ServiceManager');
+            $em = $cli->getHelperSet()->get('em')->getEntityManager();
+            $config = $sm->get('config');
+            $paths = (isset($config['doctrine']['orm_fixtures'])) ? $config['doctrine']['orm_fixtures'] : null;
+
+            $importCommand = new ImportCommand($sm);
+            $importCommand->setEntityManager($em);
+            $importCommand->setPath($paths);
+
+            $listCommand = new ListCommand($sm);
+            $listCommand->setEntityManager($em);
+            $listCommand->setPath($paths);
+            $commands = array(
+                $listCommand,
+                $importCommand
+            );
+
+
+            ConsoleRunner::addCommands($cli);
+            $cli->addCommands($commands);
+        });
     }
+
 }
