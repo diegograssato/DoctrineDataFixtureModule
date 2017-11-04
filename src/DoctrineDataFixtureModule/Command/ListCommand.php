@@ -80,21 +80,13 @@ You can also optionally specify the path to fixtures with the <info>--fixture</i
 EOT
             )
             ->addOption('fixture', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'The directory to load data fixtures from.')
-            ->addOption('group', null, InputOption::VALUE_OPTIONAL, 'Set group.')
-            ->addOption('append', null, InputOption::VALUE_NONE, 'Append data to existing data.')
-            ->addOption('purge-with-truncate', null, InputOption::VALUE_NONE, 'Truncate tables before inserting data');
+            ->addOption('group', null, InputOption::VALUE_OPTIONAL, 'Set group.');
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeln(sprintf('<comment>%s</comment>', "Listing ORM fixtures."));
-        $output->writeln(sprintf('<comment>%s</comment>', "---------------------"));
-        if ($input->isInteractive() && !$input->getOption('append')) {
-            if (!$this->askConfirmation($input, $output, '<question>Careful, database will be purged. Do you want to continue y/N ?</question>', false)) {
-                return;
-            }
-            $output->writeln("");
-        }
+        $output->writeln(sprintf('<comment>%s</comment>', "----------------------\n"));
 
         $loader = new Loader();
 
